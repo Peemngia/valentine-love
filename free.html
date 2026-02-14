@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For My Girl ❤️</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap');
+
+        /* ป้องกันการเลื่อนจอและการซูมบนมือถือ */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #fff0f3 0%, #ffccd5 100%);
+            font-family: 'Mali', cursive;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .app-container {
+            width: 90%;
+            max-width: 360px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 30px 20px;
+            border-radius: 40px;
+            box-shadow: 0 15px 40px rgba(255, 77, 109, 0.2);
+            text-align: center;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        #emoji-display {
+            font-size: 6rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        h1 {
+            color: #d90429;
+            font-size: 1.6rem;
+            margin: 10px 0;
+        }
+
+        /* Progress Bar ส่วนเปอร์เซ็นต์ */
+        .meter-box {
+            margin: 20px 0;
+        }
+        .meter-bg {
+            width: 100%;
+            height: 14px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #meter-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4d6d, #c9184a);
+            transition: width 0.3s ease;
+        }
+        .meter-text {
+            font-size: 0.9rem;
+            color: #ff4d6d;
+            font-weight: 700;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .action-area {
+            position: relative;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            font-family: 'Mali', cursive;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        #yesBtn {
+            background: #ff4d6d;
+            color: white;
+            padding: 16px 40px;
+            font-size: 1.4rem;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #noBtn {
+            background: #adb5bd;
+            color: white;
+            padding: 12px 25px;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1000; /* อยู่หน้าสุดเสมอ */
+        }
+
+        /* หน้าจอความสำเร็จ */
+        #success-page {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #ff4d6d;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 99999;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .heart-rain {
+            position: fixed;
+            pointer-events: none;
+            animation: rain linear forwards;
+        }
+        @keyframes rain { to { transform: translateY(110vh); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="main-ui">
+        <span id="emoji-display">🧸</span>
+        <h1>รักเค้ามั้ยคะ? ❤️</h1>
+        
+        <div class="meter-box">
+            <div class="meter-bg"><div id="meter-fill"></div></div>
+            <span class="meter-text">ดัชนีความดื้อ: <span id="pct">0</span>%</span>
+        </div>
+        
+        <div class="action-area">
+            <button id="yesBtn">รักที่สุด!</button>
+            <button id="noBtn" style="margin-top: 20px;">ไม่รัก</button>
+        </div>
+    </div>
+
+    <div id="success-page">
+        <div style="font-size: 8rem; margin-bottom: 10px;">🥰</div>
+        <h1 style="color: white; font-size: 2.8rem; margin: 0;">นึกแล้วเชียว!</h1>
+        <p style="font-size: 1.4rem; margin-top: 10px;">ก็บอกแล้วว่าหนีไม่พ้นหรอก <br> เค้าก็รักตัวเองนะ! 💖</p>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const meter = document.getElementById('meter-fill');
+        const pctText = document.getElementById('pct');
+        const emoji = document.getElementById('emoji-display');
+        const successPage = document.getElementById('success-page');
+        const mainUI = document.getElementById('main-ui');
+
+        let steps = 0;
+        const total = 20;
+        const emojiList = ["🥺", "😟", "☹️", "😢", "😭", "💔", "😩", "😫", "😤", "😠", "😡", "🤬", "🤯", "🫠", "🤨", "🙄", "😲", "😵‍💫", "🤡", "👹"];
+
+        function warp(e) {
+            e.preventDefault(); // ป้องกันบั๊กบนมือถือ
+            if (steps < total) {
+                steps++;
+                
+                // อัปเดต % และ Progress
+                const p = Math.round((steps / total) * 100);
+                meter.style.width = p + "%";
+                pctText.innerText = p;
+                emoji.innerText = emojiList[steps-1] || "👹";
+
+                // หาที่ว่างที่ไม่ทับปุ่มรัก
+                const yesRect = yesBtn.getBoundingClientRect();
+                const pad = 20;
+                let nx, ny, overlap;
+
+                do {
+                    nx = Math.random() * (window.innerWidth - noBtn.offsetWidth - pad * 2) + pad;
+                    ny = Math.random() * (window.innerHeight - noBtn.offsetHeight - pad * 2) + pad;
+                    
+                    // เช็คห่างจากปุ่มรัก 60px
+                    overlap = (nx < yesRect.right + 60 && nx + noBtn.offsetWidth > yesRect.left - 60 && 
+                               ny < yesRect.bottom + 60 && ny + noBtn.offsetHeight > yesRect.top - 60);
+                } while (overlap);
+
+                noBtn.style.position = 'fixed';
+                noBtn.style.left = nx + 'px';
+                noBtn.style.top = ny + 'px';
+                noBtn.style.margin = '0';
+
+                // ขยายปุ่มรักแบบพอดีหน้าจอ
+                const s = 1 + (steps * 0.45);
+                yesBtn.style.transform = `scale(${s})`;
+
+                if (steps >= total) {
+                    noBtn.style.display = 'none';
+                    yesBtn.style.transform = 'scale(80)'; // ขยายจนมิดจอ
+                    yesBtn.innerText = "ยอมแพ้แล้วจ้า! ❤️";
+                }
+            }
+        }
+
+        // สำหรับมือถือโดยเฉพาะ
+        noBtn.addEventListener('touchstart', warp);
+
+        // เมื่อกดรัก
+        yesBtn.addEventListener('click', () => {
+            mainUI.style.display = 'none';
+            yesBtn.style.display = 'none'; // ซ่อนปุ่มยักษ์ทิ้งไป
+            successPage.style.display = 'flex';
+
+            // เอฟเฟกต์หัวใจร่วง
+            setInterval(() => {
+                const h = document.createElement('div');
+                h.className = 'heart-rain';
+                h.innerHTML = '❤️';
+                h.style.left = Math.random() * 100 + 'vw';
+                h.style.top = '-50px';
+                h.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                h.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                document.body.appendChild(h);
+                setTimeout(() => h.remove(), 2500);
+            }, 80);
+        });
+    </script>
+</body>
+</html>
